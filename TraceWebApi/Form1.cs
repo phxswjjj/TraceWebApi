@@ -23,6 +23,14 @@ namespace TraceWebApi
         {
             InitializeComponent();
 
+            var chartArea = new System.Windows.Forms.DataVisualization.Charting.ChartArea("elapsed ms");
+            chartArea.AxisX.Minimum = 0;
+            chartArea.AxisX.ScaleView.Size = MaxResultCount;
+            chartArea.AxisX.Interval = 5;
+            chartArea.AxisX.IntervalAutoMode = System.Windows.Forms.DataVisualization.Charting.IntervalAutoMode.FixedCount;
+            //chartArea.AxisX.ScrollBar.ButtonStyle = System.Windows.Forms.DataVisualization.Charting.ScrollBarButtonStyles.All;
+            chart1.ChartAreas[0] = chartArea;
+
             var factory = new Quartz.Impl.StdSchedulerFactory();
             var sch = factory.GetScheduler().GetAwaiter().GetResult();
             this.Scheduler = sch;
@@ -50,6 +58,16 @@ namespace TraceWebApi
                                     this.Results.Dequeue();
                                 this.Results.Enqueue(result);
                                 WriteLine($"Monitor({this.Results.Count}): {result.ElapsedMS:N0}");
+
+                                chart1.Invoke((MethodInvoker)(() =>
+                                {
+                                    var series = chart1.Series[0];
+                                    if (series.Points.Count >= MaxResultCount)
+                                    {
+                                        series.Points.RemoveAt(0);
+                                    }
+                                    series.Points.AddY(result.ElapsedMS);
+                                }));
                             }
                         }
                     }
