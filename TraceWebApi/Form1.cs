@@ -15,6 +15,9 @@ namespace TraceWebApi
     public partial class Form1 : Form
     {
         private readonly IScheduler Scheduler;
+        private readonly CancellationTokenSource MonitorCancelSource;
+        private readonly Queue<TraceResult> Results;
+        const int MaxResultCount = 100;
 
         public Form1()
         {
@@ -23,6 +26,36 @@ namespace TraceWebApi
             var factory = new Quartz.Impl.StdSchedulerFactory();
             var sch = factory.GetScheduler().GetAwaiter().GetResult();
             this.Scheduler = sch;
+
+            var results = new Queue<TraceResult>(MaxResultCount);
+            this.Results = results;
+
+            var monitorCancelSource = new CancellationTokenSource();
+            CancellationToken ct = monitorCancelSource.Token;
+            var monitor = Task.Run(() =>
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    if (sch.IsStarted && !sch.InStandbyMode)
+                    {
+                        foreach (var job in sch.GetCurrentlyExecutingJobs().GetAwaiter().GetResult())
+                        {
+                            var result = job.Result as TraceResult;
+                            if (result != null)
+                            {
+                                if (this.Results.Contains(result))
+                                    continue;
+                                //too much
+                                if (this.Results.Count >= MaxResultCount)
+                                    this.Results.Dequeue();
+                                this.Results.Enqueue(result);
+                                WriteLine($"Monitor({this.Results.Count}): {result.ElapsedMS:N0}");
+                            }
+                        }
+                    }
+                }
+            }, monitorCancelSource.Token);
+            this.MonitorCancelSource = monitorCancelSource;
         }
 
         private void btnExecute_Click(object sender, EventArgs e)
@@ -30,6 +63,7 @@ namespace TraceWebApi
             var sch = this.Scheduler;
 
             btnExecute.Enabled = false;
+            gbxSetting.Enabled = false;
 
             if (!sch.IsStarted || sch.InStandbyMode)
             {
@@ -67,6 +101,7 @@ namespace TraceWebApi
                     {
                         btnExecute.Text = "Start";
                         btnExecute.Enabled = true;
+                        gbxSetting.Enabled = true;
                     }));
 
                     WriteLine("timer Stopped");
@@ -77,6 +112,11 @@ namespace TraceWebApi
         private void WriteLine(string msg)
         {
             Console.WriteLine($"{DateTime.Now:HH:mm:ss.fff}: {msg}");
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            this.MonitorCancelSource.Cancel();
         }
     }
 }

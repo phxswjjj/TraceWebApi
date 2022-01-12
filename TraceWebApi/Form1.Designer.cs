@@ -130,6 +130,7 @@ namespace TraceWebApi
             this.Controls.Add(this.gbxSetting);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.gbxSetting.ResumeLayout(false);
             this.gbxSetting.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numInterval)).EndInit();
