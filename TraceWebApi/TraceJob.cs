@@ -28,14 +28,14 @@ namespace TraceWebApi
             var trace = new TraceResult();
 
             var uid = Math.Abs(DateTime.Now.ToBinary() % 1000000);
-            WriteLine($"job-{uid} running");
+            TraceLog.Logger.Information("job-{uid} running", uid);
 
             trace.Start();
             var client = CreateClient();
             var resp = client.GetAsync(url).GetAwaiter().GetResult();
             trace.End();
 
-            WriteLine($"job-{uid} finish. elapsed: {trace.ElapsedMS:N0} ms");
+            TraceLog.Logger.Information("job-{uid} finish. elapsed: {elapsed} ms", uid, trace.ElapsedMS);
             return trace;
         }
 
@@ -58,11 +58,6 @@ namespace TraceWebApi
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
 
             return client;
-        }
-
-        private void WriteLine(string msg)
-        {
-            TraceLog.Logger.Information(msg);
         }
     }
 }
