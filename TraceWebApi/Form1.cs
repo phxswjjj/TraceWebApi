@@ -1,4 +1,5 @@
 ﻿using Quartz;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -129,7 +130,7 @@ namespace TraceWebApi
 
         private void WriteLine(string msg)
         {
-            Console.WriteLine($"{DateTime.Now:HH:mm:ss.fff}: {msg}");
+            TraceLog.Logger.Information(msg);
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

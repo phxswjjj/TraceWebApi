@@ -1,4 +1,5 @@
 ﻿using Quartz;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,7 +62,7 @@ namespace TraceWebApi
 
         private void WriteLine(string msg)
         {
-            Console.WriteLine($"{DateTime.Now:HH:mm:ss.fff}: {msg}");
+            TraceLog.Logger.Information(msg);
         }
     }
 }

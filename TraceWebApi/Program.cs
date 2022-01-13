@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,9 +15,23 @@ namespace TraceWebApi
         [STAThread]
         static void Main()
         {
+            InitLogger();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
+
+            //flush buffered
+            Log.CloseAndFlush();
+        }
+
+        private static void InitLogger()
+        {
+            TraceLog.Logger = new LoggerConfiguration()
+                .ReadFrom.AppSettings()
+                .Enrich.WithProperty("app", "TraceWebApi")
+                .Enrich.WithProperty("host", Environment.MachineName)
+                .CreateLogger();
         }
     }
 }
