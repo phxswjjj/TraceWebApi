@@ -32,10 +32,27 @@ namespace TraceWebApi
 
             trace.Start();
             var client = CreateClient();
-            var resp = client.GetAsync(url).GetAwaiter().GetResult();
-            trace.End();
+            try
+            {
+                var resp = client.GetAsync(url).GetAwaiter().GetResult();
+                trace.End();
 
-            TraceLog.Logger.Information("job-{uid} finish. elapsed: {elapsed} ms", uid, trace.ElapsedMS);
+                if (resp.IsSuccessStatusCode)
+                    trace.Ok();
+                else
+                    trace.Ng(resp);
+            }
+            catch (Exception ex)
+            {
+                trace.Ng(ex);
+                TraceLog.Logger.Error(ex, ex.Message);
+                return trace;
+            }
+
+            if (trace.Result == ResultType.OK)
+                TraceLog.Logger.Information("job-{uid} finish. elapsed: {elapsed} ms, result={result}", uid, trace.ElapsedMS, trace.Result);
+            else
+                TraceLog.Logger.Warning("job-{uid} finish. elapsed: {elapsed} ms, result={result}: {msg}", uid, trace.ElapsedMS, trace.Result, trace.Message);
             return trace;
         }
 

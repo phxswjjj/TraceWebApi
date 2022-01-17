@@ -68,6 +68,18 @@ namespace TraceWebApi
                                         series.Points.RemoveAt(0);
                                     }
                                     series.Points.AddY(result.ElapsedMS);
+                                    if (result.Result != ResultType.OK)
+                                    {
+                                        var pt = series.Points.Last();
+                                        pt.Label = result.Result.ToString();
+                                        pt.LabelToolTip = result.Message;
+                                        pt.IsVisibleInLegend = true;
+                                        txtMessage.Text = $"elapsed: {result.ElapsedMS:N0} ms. {result.Result}, {result.Message}";
+                                    }
+                                    else
+                                    {
+                                        txtMessage.Text = $"elapsed: {result.ElapsedMS:N0} ms. {result.Result}";
+                                    }
                                 }));
                             }
                         }
@@ -126,6 +138,12 @@ namespace TraceWebApi
                     WriteLine("timer Stopped");
                 });
             }
+        }
+
+        private void btnOpenLogDir_Click(object sender, EventArgs e)
+        {
+            var logDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"TraceWebApi\logs");
+            System.Diagnostics.Process.Start("explorer.exe", logDir);
         }
 
         private void WriteLine(string msg)
