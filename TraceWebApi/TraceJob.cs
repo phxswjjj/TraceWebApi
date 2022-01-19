@@ -60,7 +60,7 @@ namespace TraceWebApi
         private HttpClient CreateClient()
         {
             var client = new HttpClient();
-            client.Timeout = new TimeSpan(0, 0, 3);
+            client.Timeout = new TimeSpan(0, 1, 0);
 
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.ParseAdd("application/json, text/plain, */*");
